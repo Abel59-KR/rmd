@@ -344,12 +344,7 @@ eac_under_five_map = merged_east_africa.merge(latest_underfive, on="COUNTRY")
     112799      1.0  
 
     [328 rows x 23 columns]
-:::
-:::
 
-::: {.cell .markdown id="DV-213a9UAlg"}
-I
-:::
 
 ::: {.cell .code colab="{\"base_uri\":\"https://localhost:8080/\",\"height\":533}" id="oG6osSVAOmIv" outputId="11dd65cc-15a4-4a6e-ce0d-2a1ae262a48d"}
 ``` python
@@ -427,31 +422,3 @@ plt.show()
 
 
 ```
-
-::: {.output .display_data}
-![](vertopal_70407c805db440ddbdb1124d91c3c48f/c3abbd4ba6f17c16dd7f51901ae596e96aec4dfd.png)
-:::
-:::
-
-::: {.cell .markdown id="6dgJaepqlhWu"}
-:::
-
-::: {.cell .markdown id="UxW-Hhu2UzEu"}
-:::
-
-::: {.cell .markdown id="7IGKMHfuULQj"}
-7
-:::
-
-::: {.cell .markdown id="8etF3gNBOljV"}
-:::
-
-::: {.cell .markdown id="TU4__H_tOlal"}
-:::
-
-::: {.cell .markdown id="-peLPCVYQyZt"}
-i
-:::
-
-::: {.cell .markdown id="-9Co5gJUQyL0"}
-:::
