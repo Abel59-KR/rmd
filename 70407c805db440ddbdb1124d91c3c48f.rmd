@@ -291,6 +291,50 @@ for region in regions:
 ``` python
 ```
 :::
+# It appears that the column names for merging do not match between the two datasets. 
+# The 'Country' column in the poverty data corresponds to 'Location' in the HIV data.
+# Let's rename the 'Location' column in the HIV data to 'Country' for consistency.
+hiv_data.rename(columns={'Location': 'Country'}, inplace=True)
+
+# Now, we will attempt to merge the datasets again on 'Country' and 'Year'.
+merged_data = pd.merge(poverty_data, hiv_data, left_on=['Country', 'Year'], right_on=['Country', 'Period'], how='inner')
+
+# Displaying the head of the merged dataset to understand its structure
+merged_data.head()
+# Importing statsmodels for OLS regression
+import statsmodels.formula.api as smf
+
+# Converting columns that require percentage values to numeric if not already
+cols = ['Monetary (%)', 'Educational attainment (%)', 'Educational enrollment (%)', 'Electricity (%)', 'Sanitation (%)', 'Drinking water (%)', 'Multidimensional poverty headcount ratio (%)']
+for col in cols:
+    merged_data[col] = pd.to_numeric(merged_data[col], errors='coerce')
+
+# Drop rows with missing values in the key columns
+regression_data = merged_data.dropna(subset=cols + ['Value'])
+
+# Building the OLS model formula
+formula = 'Value ~ Q("Monetary (%)") + Q("Educational attainment (%)") + Q("Educational enrollment (%)") + Q("Electricity (%)") + Q("Sanitation (%)") + Q("Drinking water (%)") + Q("Multidimensional poverty headcount ratio (%)")'
+
+# Fitting the OLS model
+model = smf.ols(formula=formula, data=regression_data).fit()
+
+# Output model summary
+print(model.summary())
+
+# Plotting observed vs fitted values for a quick check
+import matplotlib.pyplot as plt
+plt.figure(figsize=(8,6))
+plt.scatter(regression_data['Value'], model.fittedvalues, alpha=0.7)
+plt.xlabel('Observed HIV Counts')
+plt.ylabel('Fitted HIV Counts')
+plt.title('Observed vs Fitted HIV Counts')
+plt.show()
+The model has an 
+R 
+2
+  of about 0.154, indicating that approximately 15.4% of the variance in the estimated number of people living with HIV is explained by the poverty indicators.
+None of the individual predictors have statistically significant coefficients (all p-values are above 0.05), which suggests that, within this model and the merged data sample, there is no strong evidence of a relationship between the multidimensional poverty indicators and HIV counts.
+Note that the limited sample size (29 observations after merging) and other factors such as potential measurement errors or omitted variables may influence these results.
 
 ::: {.cell .code id="WBJ2_4K_spsH"}
 ``` python
@@ -703,4 +747,4 @@ plt.show()
 
 
 
-```
+``` South Sudan has the highest in both neonatal and under five mortality rates compared to other countries```
