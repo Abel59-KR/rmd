@@ -202,29 +202,29 @@ print(f"Total Global HIV Burden: {total_burden}")
 
 ::: {.cell .code colab="{\"base_uri\":\"https://localhost:8080/\",\"height\":680}" id="txE2ibrYuTA7" outputId="9b2a6d72-3c43-43ac-e3a6-2c09b405d4cf"}
 ``` python
-# Step 1: Group by country and sum the Estimates
+# Grouping by country and sum the Estimates
 df_grouped = df.groupby('Location', as_index=False)['Estimates'].sum()
 
-# Step 2: Calculate total global burden
+# Calculating total global burden
 total_burden = df_grouped['Estimates'].sum()
 
-# Step 3: Calculate each country's percentage of total
+# Calculating each country's percentage of total
 df_grouped['Percentage'] = (df_grouped['Estimates'] / total_burden) * 100
 
-# Step 4: Sort by percentage descending
+# Sorting by percentage descending
 top_countries = df_grouped.sort_values(by='Percentage', ascending=False)
 
-# Step 5: Compute cumulative sum
+# Computing cumulative sum
 top_countries['Cumulative %'] = top_countries['Percentage'].cumsum()
 
-# Step 6: Filter countries that contribute up to 75%
+# Filtering countries that contribute up to 75%
 countries_75_percent = top_countries[top_countries['Cumulative %'] <= 75]
 
-# Step 7: Prepare labels and sizes
+# Preparing labels and sizes
 labels = countries_75_percent['Location']
 sizes = countries_75_percent['Percentage']
 
-# Step 8: Plot the pie chart
+# Ploting the pie chart
 plt.figure(figsize=(10, 8))
 plt.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=140, counterclock=False)
 plt.axis('equal')  # Equal aspect ratio makes the pie a circle
