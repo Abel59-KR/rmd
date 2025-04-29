@@ -1,0 +1,293 @@
+---
+jupyter:
+  colab:
+  kernelspec:
+    display_name: Python 3
+    name: python3
+  language_info:
+    name: python
+  nbformat: 4
+  nbformat_minor: 0
+---
+
+::: {.cell .code colab="{\"base_uri\":\"https://localhost:8080/\"}" id="KxEP2tgO_snu" outputId="e1ce7114-dcb8-4d0f-e5c2-83328fd8104d"}
+``` python
+import pandas as pd
+import re
+import matplotlib.pyplot as plt
+from google.colab import drive
+drive.mount('/content/drive')
+
+#loading data using pandas
+df = pd.read_csv('/content/drive/MyDrive/internship_task_dscience-main/HIV data 2000-2023.csv', encoding='latin-1')
+# Displaying the first few rows and column names
+df.head(), df.columns.tolist()
+```
+
+::: {.output .stream .stdout}
+    Drive already mounted at /content/drive; to attempt to forcibly remount, call drive.mount("/content/drive", force_remount=True).
+:::
+
+::: {.output .execute_result execution_count="4"}
+    (    IndicatorCode                                          Indicator  \
+     0  HIV_0000000001  Estimated number of people (all ages) living w...   
+     1  HIV_0000000001  Estimated number of people (all ages) living w...   
+     2  HIV_0000000001  Estimated number of people (all ages) living w...   
+     3  HIV_0000000001  Estimated number of people (all ages) living w...   
+     4  HIV_0000000001  Estimated number of people (all ages) living w...   
+     
+       ValueType ParentLocationCode ParentLocation Location type  \
+     0   numeric                AFR         Africa       Country   
+     1   numeric                AFR         Africa       Country   
+     2   numeric                AFR         Africa       Country   
+     3   numeric                AFR         Africa       Country   
+     4   numeric                AFR         Africa       Country   
+     
+       SpatialDimValueCode Location Period type  Period  \
+     0                 AGO   Angola        Year    2023   
+     1                 AGO   Angola        Year    2022   
+     2                 AGO   Angola        Year    2021   
+     3                 AGO   Angola        Year    2020   
+     4                 AGO   Angola        Year    2015   
+     
+                              Value  
+     0  320 000 [280 000 - 380 000]  
+     1  320 000 [280 000 - 380 000]  
+     2  320 000 [280 000 - 380 000]  
+     3  320 000 [280 000 - 370 000]  
+     4  300 000 [260 000 - 350 000]  ,
+     ['IndicatorCode',
+      'Indicator',
+      'ValueType',
+      'ParentLocationCode',
+      'ParentLocation',
+      'Location type',
+      'SpatialDimValueCode',
+      'Location',
+      'Period type',
+      'Period',
+      'Value'])
+:::
+:::
+
+::: {.cell .code colab="{\"base_uri\":\"https://localhost:8080/\",\"height\":1000}" id="eWdOvw94aIOq" outputId="101699e4-534e-49ee-e9e1-7e232d9edc4f"}
+``` python
+Estimates = df[df['Value'] == "No data"]
+Estimates  = df[df['Value']. astype(str).str .startswith('<')].copy()
+Estimates.head(15)
+```
+
+::: {.output .execute_result execution_count="17"}
+``` json
+{"summary":"{\n  \"name\": \"Estimates\",\n  \"rows\": 74,\n  \"fields\": [\n    {\n      \"column\": \"IndicatorCode\",\n      \"properties\": {\n        \"dtype\": \"category\",\n        \"num_unique_values\": 1,\n        \"samples\": [\n          \"HIV_0000000001\"\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"Indicator\",\n      \"properties\": {\n        \"dtype\": \"category\",\n        \"num_unique_values\": 1,\n        \"samples\": [\n          \"Estimated number of people (all ages) living with HIV\"\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"ValueType\",\n      \"properties\": {\n        \"dtype\": \"category\",\n        \"num_unique_values\": 1,\n        \"samples\": [\n          \"numeric\"\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"ParentLocationCode\",\n      \"properties\": {\n        \"dtype\": \"category\",\n        \"num_unique_values\": 5,\n        \"samples\": [\n          \"EMR\"\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"ParentLocation\",\n      \"properties\": {\n        \"dtype\": \"category\",\n        \"num_unique_values\": 5,\n        \"samples\": [\n          \"Eastern Mediterranean\"\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"Location type\",\n      \"properties\": {\n        \"dtype\": \"category\",\n        \"num_unique_values\": 1,\n        \"samples\": [\n          \"Country\"\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"SpatialDimValueCode\",\n      \"properties\": {\n        \"dtype\": \"category\",\n        \"num_unique_values\": 24,\n        \"samples\": [\n          \"ALB\"\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"Location\",\n      \"properties\": {\n        \"dtype\": \"category\",\n        \"num_unique_values\": 24,\n        \"samples\": [\n          \"Albania\"\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"Period type\",\n      \"properties\": {\n        \"dtype\": \"category\",\n        \"num_unique_values\": 1,\n        \"samples\": [\n          \"Year\"\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"Period\",\n      \"properties\": {\n        \"dtype\": \"number\",\n        \"std\": 7,\n        \"min\": 2000,\n        \"max\": 2023,\n        \"num_unique_values\": 8,\n        \"samples\": [\n          2022\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"Value\",\n      \"properties\": {\n        \"dtype\": \"category\",\n        \"num_unique_values\": 14,\n        \"samples\": [\n          \"<500 [<500 - 650]\"\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    }\n  ]\n}","type":"dataframe","variable_name":"Estimates"}
+```
+:::
+:::
+
+::: {.cell .code colab="{\"base_uri\":\"https://localhost:8080/\",\"height\":398}" id="b17ai8DQUOwh" outputId="3bef37a7-f276-47b0-f650-097a7bfb83f3"}
+``` python
+def extract_number_outside_brackets(text):
+  """
+  Extracts the number values outside the brackets.
+  For example:
+  extract_number_outside_brackets("320 000 [ 300 000 - 400 000]") == 320000
+
+  Args:
+    text: The input string.
+
+  Returns:
+    The extracted number value as an integer.
+  """
+
+  match = re.search(r'(\d+(?:\s\d+)*)', text)
+  if match:
+    number_str = match.group(1).replace(' ', '')  # Remove spaces
+    return int(number_str)
+  else:
+    return None
+
+# Extracting integer values from the value column input string
+Estimates = (df, 'Value')
+Estimates = df['Value'].apply(extract_number_outside_brackets)
+
+Estimates.head(10)
+```
+
+::: {.output .execute_result execution_count="19"}
+```{=html}
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>320000.0</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>320000.0</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>320000.0</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>320000.0</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>300000.0</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>250000.0</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>190000.0</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>140000.0</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>81000.0</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>82000.0</td>
+    </tr>
+  </tbody>
+</table>
+</div><br><label><b>dtype:</b> float64</label>
+```
+:::
+:::
+
+::: {.cell .code colab="{\"base_uri\":\"https://localhost:8080/\"}" id="YY_bslkCiIe9" outputId="d7b2afff-0547-47e5-b1aa-fdbd5cd3026f"}
+``` python
+
+
+#calculating the total value
+total_burden = Estimates.sum()
+print(f"Total Global HIV Burden: {total_burden}")
+
+
+```
+
+::: {.output .stream .stdout}
+    Total Global HIV Burden: 227293710.0
+:::
+:::
+
+::: {.cell .code colab="{\"base_uri\":\"https://localhost:8080/\",\"height\":680}" id="txE2ibrYuTA7" outputId="9b2a6d72-3c43-43ac-e3a6-2c09b405d4cf"}
+``` python
+# Step 1: Group by country and sum the Estimates
+df_grouped = df.groupby('Location', as_index=False)['Estimates'].sum()
+
+# Step 2: Calculate total global burden
+total_burden = df_grouped['Estimates'].sum()
+
+# Step 3: Calculate each country's percentage of total
+df_grouped['Percentage'] = (df_grouped['Estimates'] / total_burden) * 100
+
+# Step 4: Sort by percentage descending
+top_countries = df_grouped.sort_values(by='Percentage', ascending=False)
+
+# Step 5: Compute cumulative sum
+top_countries['Cumulative %'] = top_countries['Percentage'].cumsum()
+
+# Step 6: Filter countries that contribute up to 75%
+countries_75_percent = top_countries[top_countries['Cumulative %'] <= 75]
+
+# Step 7: Prepare labels and sizes
+labels = countries_75_percent['Location']
+sizes = countries_75_percent['Percentage']
+
+# Step 8: Plot the pie chart
+plt.figure(figsize=(10, 8))
+plt.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=140, counterclock=False)
+plt.axis('equal')  # Equal aspect ratio makes the pie a circle
+plt.title('Countries Contributing to 75% of Global HIV Burden')
+plt.show()
+```
+
+::: {.output .display_data}
+![](vertopal_3107ef93a538453e80fe2462e57b6b2f/48e8fd2fef4767f8fc36835e2e79207da31c5af2.png)
+:::
+:::
+
+::: {.cell .code colab="{\"base_uri\":\"https://localhost:8080/\",\"height\":1000}" id="9zsc_JjNucqx" outputId="40542b00-e61a-4160-8d38-abd52eda7d47"}
+``` python
+# Grouping by country and sum Estimates (across all years) and calculating global burden
+df_grouped = df.groupby('Location', as_index=False)['Estimates'].sum()
+total_burden = df_grouped['Estimates'].sum()
+
+# Calculating each country's percentage of global burden and sorting % in descending order
+df_grouped['Percentage'] = (df_grouped['Estimates'] / total_burden) * 100
+top_countries = df_grouped.sort_values(by='Percentage', ascending=False)
+
+# Computing cumulative sum
+top_countries['Cumulative %'] = top_countries['Percentage'].cumsum()
+
+# Filtering countries that contribute up to 75%
+countries_75_percent = top_countries[top_countries['Cumulative %'] <= 75]
+
+# Extracting names of these countries
+top_country_list = countries_75_percent['Location'].tolist()
+
+# Filtering  original data for only these countries and plotting
+df_top_countries = df[df['Location'].isin(top_country_list)]
+regions = df_top_countries['ParentLocationCode'].unique()
+for region in regions:
+    region_data = df_top_countries[df_top_countries['ParentLocationCode'] == region]
+    plt.figure(figsize=(12, 6))
+
+    for country in region_data['Location'].unique():
+        country_data = region_data[region_data['Location'] == country]
+        plt.plot(country_data['Period'], country_data['Estimates'], label=country)
+
+    plt.xlabel('Year')
+    plt.ylabel('Number of HIV Cases')
+    plt.title(f'Trend of HIV Cases in Top Countries (75% Burden) - {region}')
+    plt.legend()
+    plt.show()
+```
+
+::: {.output .display_data}
+![](vertopal_3107ef93a538453e80fe2462e57b6b2f/88dfd704f826e9c00ca0e326608ce010bcafcafd.png)
+:::
+
+::: {.output .display_data}
+![](vertopal_3107ef93a538453e80fe2462e57b6b2f/a6ea2a74217adc63a4a1bf39dbe58e30e6fb51f7.png)
+:::
+
+::: {.output .display_data}
+![](vertopal_3107ef93a538453e80fe2462e57b6b2f/e9cb803f43e1433b5eb425999e1805b516b2191a.png)
+:::
+:::
+
+::: {.cell .code id="yrX7h9H0vUkl"}
+``` python
+```
+:::
