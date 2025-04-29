@@ -1,0 +1,457 @@
+---
+jupyter:
+  colab:
+  kernelspec:
+    display_name: Python 3
+    name: python3
+  language_info:
+    name: python
+  nbformat: 4
+  nbformat_minor: 0
+---
+
+::: {.cell .code id="WBJ2_4K_spsH"}
+``` python
+import pandas as pd
+import geopandas as gpd
+```
+:::
+
+::: {.cell .code colab="{\"base_uri\":\"https://localhost:8080/\"}" id="6noQUVxAQ1EB" outputId="b9638ab3-9ccc-483d-96d8-579b89ba7122"}
+``` python
+neonatal_data = pd.read_csv('/content/drive/MyDrive/internship_task_dscience-main/neonatal_mortality_rate.csv')
+under_five_data = pd.read_csv('/content/drive/MyDrive/internship_task_dscience-main/under_five mortality rate.csv')
+data = pd.read_csv('/content/drive/MyDrive/internship_task_dscience-main/dataset_datascience.csv')
+```
+
+::: {.output .stream .stderr}
+    <ipython-input-72-ec787b825a51>:3: DtypeWarning: Columns (2) have mixed types. Specify dtype option on import or set low_memory=False.
+      data = pd.read_csv('/content/drive/MyDrive/internship_task_dscience-main/dataset_datascience.csv')
+:::
+:::
+
+::: {.cell .code id="YYCYaQ3pRlzt"}
+``` python
+```
+:::
+
+::: {.cell .code colab="{\"base_uri\":\"https://localhost:8080/\",\"height\":741}" id="M6q4NV7dQhqS" outputId="9733309b-922d-4ae9-d3b8-f43d4618d4f6"}
+``` python
+from typing_extensions import dataclass_transform
+# Define the list of East African Community countries
+EAC_countries = ['Burundi', 'Kenya', 'Rwanda', 'South Sudan', 'Tanzania', 'Uganda', 'Democratic Republic of the Congo', 'Somalia{}']
+
+# Filter the neonatal mortality rate dataset for EAC countries
+#neonatal_filtered = neonatal_data[neonatal_data['REF_AREA'].isin(EAC_countries)]
+#data_filtered =data[data['Geographic area'].isin(EAC_countries)]
+# Filter the under-five mortality rate dataset for EAC countries
+#under_five_filtered = under_five_data[under_five_data['REF_AREA'].isin(EAC_countries)]
+neonatal_filtered = data[
+    (data['Geographic area'].isin(EAC_countries)) &
+    (data['Indicator'] == 'Neonatal mortality rate')
+]
+
+under_five_filtered = data[
+    (data['Geographic area'].isin(EAC_countries)) &
+    (data['Indicator'] == 'Under-five mortality rate')
+]
+# Display the head of the filtered datasets to confirm the filtering
+#neonatal_filtered_head = neonatal_filtered.head()
+#under_five_filtered_head = under_five_filtered.head()
+
+neonatal_filtered.head()#neonatal_filtered_head, under_five_filtered_head
+under_five_filtered.head()
+
+
+```
+
+::: {.output .execute_result execution_count="73"}
+``` json
+{"type":"dataframe","variable_name":"under_five_filtered"}
+```
+:::
+:::
+
+::: {.cell .code colab="{\"base_uri\":\"https://localhost:8080/\",\"height\":402}" id="534-E5cB-0wz" outputId="9ae9a121-f27a-4d1b-e81f-9c73729a049a"}
+``` python
+import geopandas as gpd
+import zipfile
+import os
+import pandas as pd
+
+def load_shapefiles_from_folder(folder_path, extract_base="/content/drive/MyDrive/internship_task_dscience-main/shapefiles"):
+    gdf_list=[]
+
+    for zip_file in os.listdir(folder_path):
+        if zip_file.endswith(".zip"):
+            zip_path = os.path.join(folder_path, zip_file)
+            country_name = os.path.splitext(zip_file)[0]
+            extract_dir = os.path.join(extract_base, country_name)
+
+            os.makedirs(extract_dir, exist_ok=True)
+
+            with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+                zip_ref.extractall(extract_dir)
+
+            for file in os.listdir(extract_dir):
+                if file.endswith(".shp"):
+                    shp_path = os.path.join(extract_dir, file)
+                    gdf = gpd.read_file(shp_path)
+                    gdf["country"] = country_name  # optional
+                    gdf_list.append(gdf)
+                    break
+
+    # The return statement should be aligned with the for loop
+    return gpd.GeoDataFrame(pd.concat(gdf_list, ignore_index=True))
+
+# Set folder path to your Drive location
+folder_path = "/content/drive/MyDrive/internship_task_dscience-main/shapefiles"
+
+# Load and merge all shapefiles
+merged_east_africa = load_shapefiles_from_folder(folder_path)
+
+# Plot
+merged_east_africa.plot()
+```
+
+::: {.output .execute_result execution_count="74"}
+    <Axes: >
+:::
+
+::: {.output .display_data}
+![](vertopal_70407c805db440ddbdb1124d91c3c48f/db713b2f4ea9163a830da4ba741f8f1c7cd4779f.png)
+:::
+:::
+
+::: {.cell .markdown id="fUz0ZNkI-0h9"}
+:::
+
+::: {.cell .markdown id="CM8m-Cy4QhdG"}
+:::
+
+::: {.cell .markdown id="6ulMJKM33Ahf"}
+:::
+
+::: {.cell .code colab="{\"base_uri\":\"https://localhost:8080/\"}" id="IhSKJfEuNtNX" outputId="a820d53e-8071-4157-a105-47760cd26bd0"}
+``` python
+print(merged_east_africa.head())
+```
+
+::: {.output .stream .stdout}
+      GID_0                           COUNTRY  \
+    0   UGA                            Uganda   
+    1   SOM                           Somalia   
+    2   TZA                          Tanzania   
+    3   SSD                       South Sudan   
+    4   COD  Democratic Republic of the Congo   
+
+                                                geometry         country  
+    0  POLYGON ((29.91125 -1.47687, 29.91099 -1.47613...  gadm41_UGA_shp  
+    1  MULTIPOLYGON (((41.61347 -1.6093, 41.61319 -1....  gadm41_SOM_shp  
+    2  MULTIPOLYGON (((39.35587 -11.09155, 39.34812 -...  gadm41_TZA_shp  
+    3  POLYGON ((29.79568 4.3843, 29.79645 4.38899, 2...  gadm41_SSD_shp  
+    4  MULTIPOLYGON (((27.24913 -11.79462, 27.2478 -1...  gadm41_COD_shp  
+:::
+:::
+
+::: {.cell .code colab="{\"base_uri\":\"https://localhost:8080/\"}" id="JSa-GucHUBNe" outputId="6cc6ca82-24f4-4be8-8bc4-a3eccafc827e"}
+``` python
+# For latest estimates, determine the max year available in each subset
+latest_year_neonatal = neonatal_filtered['Series Year'].max()
+latest_year_underfive = under_five_filtered['Series Year'].max()
+neonatal_filtered = neonatal_filtered.rename(columns={'Geographic area':'COUNTRY'})
+under_five_filtered = neonatal_filtered.rename(columns ={'Geographic area':'COUNTRY'})
+latest_neonatal = neonatal_filtered[neonatal_filtered['Series Year'] == latest_year_neonatal].copy()
+latest_underfive = under_five_filtered[under_five_filtered['Series Year'] == latest_year_underfive].copy()
+
+print("Latest Neonatal Data (Year:", latest_year_neonatal,"):")
+print(latest_neonatal)
+print("latest under five data(year: ",latest_year_underfive)
+print(latest_underfive)
+# Use .merge() method instead of calling the GeoDataFrame directly
+eac_neonatal_map = merged_east_africa.merge(latest_neonatal, on="COUNTRY")
+eac_under_five_map = merged_east_africa.merge(latest_underfive, on="COUNTRY")
+
+latest_neonatal = neonatal_filtered[neonatal_filtered['Series Year'] == latest_year_neonatal].copy()
+latest_underfive = under_five_filtered[under_five_filtered['Series Year'] == latest_year_underfive].copy()
+
+
+
+eac_neonatal_map = merged_east_africa.merge(latest_neonatal, on="COUNTRY")
+eac_under_five_map = merged_east_africa.merge(latest_underfive, on="COUNTRY")
+# ("Latest Under-Five Data (Year:", latest_year_underfive,"):")
+#print(latest_underfive)
+```
+
+::: {.output .stream .stdout}
+    Latest Neonatal Data (Year: 2023 ):
+           REF_AREA  COUNTRY Regional group                Indicator    Sex  \
+    6402        BDI  Burundi            NaN  Neonatal mortality rate  Total   
+    6403        BDI  Burundi            NaN  Neonatal mortality rate  Total   
+    6404        BDI  Burundi            NaN  Neonatal mortality rate  Total   
+    6405        BDI  Burundi            NaN  Neonatal mortality rate  Total   
+    6406        BDI  Burundi            NaN  Neonatal mortality rate  Total   
+    ...         ...      ...            ...                      ...    ...   
+    112795      UGA   Uganda            NaN  Neonatal mortality rate  Total   
+    112796      UGA   Uganda            NaN  Neonatal mortality rate  Total   
+    112797      UGA   Uganda            NaN  Neonatal mortality rate  Total   
+    112798      UGA   Uganda            NaN  Neonatal mortality rate  Total   
+    112799      UGA   Uganda            NaN  Neonatal mortality rate  Total   
+
+           Wealth Quintile       Series Name Series Year  Reference Date  \
+    6402             Total  UN IGME estimate        2023          1964.5   
+    6403             Total  UN IGME estimate        2023          1965.5   
+    6404             Total  UN IGME estimate        2023          1966.5   
+    6405             Total  UN IGME estimate        2023          1967.5   
+    6406             Total  UN IGME estimate        2023          1968.5   
+    ...                ...               ...         ...             ...   
+    112795           Total  UN IGME estimate        2023          2019.5   
+    112796           Total  UN IGME estimate        2023          2020.5   
+    112797           Total  UN IGME estimate        2023          2021.5   
+    112798           Total  UN IGME estimate        2023          2022.5   
+    112799           Total  UN IGME estimate        2023          2023.5   
+
+            Observation Value  ...  Country notes  Observation Status  \
+    6402            49.749877  ...            NaN        Normal value   
+    6403            49.900299  ...            NaN        Normal value   
+    6404            49.952441  ...            NaN        Normal value   
+    6405            49.872070  ...            NaN        Normal value   
+    6406            49.937962  ...            NaN        Normal value   
+    ...                   ...  ...            ...                 ...   
+    112795          19.652358  ...            NaN        Normal value   
+    112796          19.163102  ...            NaN        Normal value   
+    112797          18.744500  ...            NaN        Normal value   
+    112798          18.351428  ...            NaN        Normal value   
+    112799          17.851216  ...            NaN        Normal value   
+
+                         Unit of measure Series Type Series Category  \
+    6402    Deaths per 1,000 live births         NaN             NaN   
+    6403    Deaths per 1,000 live births         NaN             NaN   
+    6404    Deaths per 1,000 live births         NaN             NaN   
+    6405    Deaths per 1,000 live births         NaN             NaN   
+    6406    Deaths per 1,000 live births         NaN             NaN   
+    ...                              ...         ...             ...   
+    112795  Deaths per 1,000 live births         NaN             NaN   
+    112796  Deaths per 1,000 live births         NaN             NaN   
+    112797  Deaths per 1,000 live births         NaN             NaN   
+    112798  Deaths per 1,000 live births         NaN             NaN   
+    112799  Deaths per 1,000 live births         NaN             NaN   
+
+           Series Method Age Group of Women Time Since First Birth Definition  \
+    6402             NaN                NaN                    NaN        NaN   
+    6403             NaN                NaN                    NaN        NaN   
+    6404             NaN                NaN                    NaN        NaN   
+    6405             NaN                NaN                    NaN        NaN   
+    6406             NaN                NaN                    NaN        NaN   
+    ...              ...                ...                    ...        ...   
+    112795           NaN                NaN                    NaN        NaN   
+    112796           NaN                NaN                    NaN        NaN   
+    112797           NaN                NaN                    NaN        NaN   
+    112798           NaN                NaN                    NaN        NaN   
+    112799           NaN                NaN                    NaN        NaN   
+
+           Interval  
+    6402        1.0  
+    6403        1.0  
+    6404        1.0  
+    6405        1.0  
+    6406        1.0  
+    ...         ...  
+    112795      1.0  
+    112796      1.0  
+    112797      1.0  
+    112798      1.0  
+    112799      1.0  
+
+    [328 rows x 23 columns]
+    latest under five data(year:  2023
+           REF_AREA  COUNTRY Regional group                Indicator    Sex  \
+    6402        BDI  Burundi            NaN  Neonatal mortality rate  Total   
+    6403        BDI  Burundi            NaN  Neonatal mortality rate  Total   
+    6404        BDI  Burundi            NaN  Neonatal mortality rate  Total   
+    6405        BDI  Burundi            NaN  Neonatal mortality rate  Total   
+    6406        BDI  Burundi            NaN  Neonatal mortality rate  Total   
+    ...         ...      ...            ...                      ...    ...   
+    112795      UGA   Uganda            NaN  Neonatal mortality rate  Total   
+    112796      UGA   Uganda            NaN  Neonatal mortality rate  Total   
+    112797      UGA   Uganda            NaN  Neonatal mortality rate  Total   
+    112798      UGA   Uganda            NaN  Neonatal mortality rate  Total   
+    112799      UGA   Uganda            NaN  Neonatal mortality rate  Total   
+
+           Wealth Quintile       Series Name Series Year  Reference Date  \
+    6402             Total  UN IGME estimate        2023          1964.5   
+    6403             Total  UN IGME estimate        2023          1965.5   
+    6404             Total  UN IGME estimate        2023          1966.5   
+    6405             Total  UN IGME estimate        2023          1967.5   
+    6406             Total  UN IGME estimate        2023          1968.5   
+    ...                ...               ...         ...             ...   
+    112795           Total  UN IGME estimate        2023          2019.5   
+    112796           Total  UN IGME estimate        2023          2020.5   
+    112797           Total  UN IGME estimate        2023          2021.5   
+    112798           Total  UN IGME estimate        2023          2022.5   
+    112799           Total  UN IGME estimate        2023          2023.5   
+
+            Observation Value  ...  Country notes  Observation Status  \
+    6402            49.749877  ...            NaN        Normal value   
+    6403            49.900299  ...            NaN        Normal value   
+    6404            49.952441  ...            NaN        Normal value   
+    6405            49.872070  ...            NaN        Normal value   
+    6406            49.937962  ...            NaN        Normal value   
+    ...                   ...  ...            ...                 ...   
+    112795          19.652358  ...            NaN        Normal value   
+    112796          19.163102  ...            NaN        Normal value   
+    112797          18.744500  ...            NaN        Normal value   
+    112798          18.351428  ...            NaN        Normal value   
+    112799          17.851216  ...            NaN        Normal value   
+
+                         Unit of measure Series Type Series Category  \
+    6402    Deaths per 1,000 live births         NaN             NaN   
+    6403    Deaths per 1,000 live births         NaN             NaN   
+    6404    Deaths per 1,000 live births         NaN             NaN   
+    6405    Deaths per 1,000 live births         NaN             NaN   
+    6406    Deaths per 1,000 live births         NaN             NaN   
+    ...                              ...         ...             ...   
+    112795  Deaths per 1,000 live births         NaN             NaN   
+    112796  Deaths per 1,000 live births         NaN             NaN   
+    112797  Deaths per 1,000 live births         NaN             NaN   
+    112798  Deaths per 1,000 live births         NaN             NaN   
+    112799  Deaths per 1,000 live births         NaN             NaN   
+
+           Series Method Age Group of Women Time Since First Birth Definition  \
+    6402             NaN                NaN                    NaN        NaN   
+    6403             NaN                NaN                    NaN        NaN   
+    6404             NaN                NaN                    NaN        NaN   
+    6405             NaN                NaN                    NaN        NaN   
+    6406             NaN                NaN                    NaN        NaN   
+    ...              ...                ...                    ...        ...   
+    112795           NaN                NaN                    NaN        NaN   
+    112796           NaN                NaN                    NaN        NaN   
+    112797           NaN                NaN                    NaN        NaN   
+    112798           NaN                NaN                    NaN        NaN   
+    112799           NaN                NaN                    NaN        NaN   
+
+           Interval  
+    6402        1.0  
+    6403        1.0  
+    6404        1.0  
+    6405        1.0  
+    6406        1.0  
+    ...         ...  
+    112795      1.0  
+    112796      1.0  
+    112797      1.0  
+    112798      1.0  
+    112799      1.0  
+
+    [328 rows x 23 columns]
+:::
+:::
+
+::: {.cell .markdown id="DV-213a9UAlg"}
+I
+:::
+
+::: {.cell .code colab="{\"base_uri\":\"https://localhost:8080/\",\"height\":533}" id="oG6osSVAOmIv" outputId="11dd65cc-15a4-4a6e-ce0d-2a1ae262a48d"}
+``` python
+import matplotlib.pyplot as plt
+fig, ax = plt.subplots(1, 1, figsize=(10, 8))
+eac_neonatal_map.plot(column="Observation Value", cmap="OrRd", linewidth=0.8, ax=ax, edgecolor="0.8", legend=True)
+ax.set_title("Latest Neonatal Mortality Rate in EAC (Year " + str(latest_year_neonatal) + ")")
+plt.show()
+```
+
+::: {.output .display_data}
+![](vertopal_70407c805db440ddbdb1124d91c3c48f/7cea28c6758ba40f369b3c647ef24e5448cf3385.png)
+:::
+:::
+
+::: {.cell .code colab="{\"base_uri\":\"https://localhost:8080/\",\"height\":533}" id="4PX1_8rPULuC" outputId="e91e4b05-e994-4bc4-ef84-49b66560c97a"}
+``` python
+import matplotlib.pyplot as plt
+fig, ax = plt.subplots(1, 1, figsize=(10, 8))
+eac_under_five_map.plot(column="Observation Value", cmap="OrRd", linewidth=0.8, ax=ax, edgecolor="0.8", legend=True)
+ax.set_title("Latest Under five  Mortality Rate in EAC (Year " + str(latest_year_neonatal) + ")")
+plt.show()
+```
+
+::: {.output .display_data}
+![](vertopal_70407c805db440ddbdb1124d91c3c48f/f21e256b193a5edbcb51cf25edb9a26ebea77f72.png)
+:::
+:::
+
+::: {.cell .code colab="{\"base_uri\":\"https://localhost:8080/\",\"height\":329}" id="-YqlKVd7kZvh" outputId="dc00285d-0cd2-4a1b-b58a-bb27ed2b3df6"}
+``` python
+import seaborn as sns
+underfive_avg =under_five_filtered.groupby("Series Year")["Observation Value"].mean().reset_index()
+
+plt.figure(figsize=(12, 6))
+sns.lineplot(data=underfive_avg, x="Series Year", y="Observation Value", label="Average Trend", marker="o")
+sns.scatterplot(data=under_five_filtered, x="Series Year", y="Observation Value", hue="COUNTRY", palette="Set2", legend="full")
+
+plt.title("Under-Five Mortality Rate Trends in EAC")
+plt.ylabel("Mortality Rate")
+
+# Set evenly spaced x-axis ticks
+plt.xticks(ticks=sorted(underfive_avg["Series Year"].unique()), rotation=45)
+
+plt.tight_layout()
+plt.show()
+
+
+
+
+```
+
+::: {.output .display_data}
+![](vertopal_70407c805db440ddbdb1124d91c3c48f/75050d8bdd9f4a5c113581e5e7ad9dfcd0cdaab5.png)
+:::
+:::
+
+::: {.cell .code colab="{\"base_uri\":\"https://localhost:8080/\",\"height\":329}" id="IyeLimvdlhlN" outputId="b450d042-5a35-4ddb-f54c-1e094d679f7c"}
+``` python
+import seaborn as sns
+neonatal_avg = neonatal_filtered.groupby("Series Year")["Observation Value"].mean().reset_index()
+plt.figure(figsize=(12, 6))
+sns.lineplot(data=neonatal_avg, x="Series Year", y="Observation Value", label="Average Trend", marker="o")
+sns.scatterplot(data=neonatal_filtered, x="Series Year", y="Observation Value", hue="COUNTRY", palette="Set2", legend="full")
+
+plt.title("neonatal Mortality Rate Trends in EAC")
+plt.ylabel("Mortality Rate")
+
+# Set evenly spaced x-axis ticks
+plt.xticks(ticks=sorted(neonatal_avg["Series Year"].unique()), rotation=45)
+
+plt.tight_layout()
+plt.show()
+
+
+
+```
+
+::: {.output .display_data}
+![](vertopal_70407c805db440ddbdb1124d91c3c48f/c3abbd4ba6f17c16dd7f51901ae596e96aec4dfd.png)
+:::
+:::
+
+::: {.cell .markdown id="6dgJaepqlhWu"}
+:::
+
+::: {.cell .markdown id="UxW-Hhu2UzEu"}
+:::
+
+::: {.cell .markdown id="7IGKMHfuULQj"}
+7
+:::
+
+::: {.cell .markdown id="8etF3gNBOljV"}
+:::
+
+::: {.cell .markdown id="TU4__H_tOlal"}
+:::
+
+::: {.cell .markdown id="-peLPCVYQyZt"}
+i
+:::
+
+::: {.cell .markdown id="-9Co5gJUQyL0"}
+:::
